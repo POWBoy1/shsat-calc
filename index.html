@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHSAT Score & Schools Calculator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h1>SHSAT Score & Schools Calculator</h1>
+  
+  <label for="ela">Correct ELA Answers (0-57):</label>
+  <input type="number" id="ela" min="0" max="57" value="0">
+  
+  <label for="math">Correct Math Answers (0-57):</label>
+  <input type="number" id="math" min="0" max="57" value="0">
+  
+  <button onclick="calculateScore()">Calculate Score</button>
+  
+  <div class="result" id="result"></div>
+  <div class="disclaimer">
+    ⚠️ Note: This calculator uses an estimated SHSAT scaling formula. Scores and chances are predictions only.
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
