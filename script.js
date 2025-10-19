@@ -10,18 +10,32 @@ const schoolCutoffs = {
   "Lehman College HS": 489
 };
 
-// Updated scaled score function
+// Improved nonlinear (upside-down bell) scaling
 function scaleScore(raw) {
-  if (raw <= 10) return 100;
+  if (raw <= 0) return 100;
   if (raw >= 57) return 350;
-  return Math.round(100 + (raw - 10) * (250 / 47));
+
+  // Normalize raw to 0–1 range
+  const x = raw / 57;
+
+  // Nonlinear curve (upside-down bell)
+  // First questions worth more → flattens → increases again
+  // Combines logistic and power curve for smoother scaling
+  const curve =
+    0.5 * Math.sin((x - 0.5) * Math.PI) + // inverted bell shape
+    0.5 * Math.pow(x, 2); // accelerates near top
+
+  // Map to scaled range (100–350)
+  const scaled = 100 + curve * 250;
+
+  return Math.round(scaled);
 }
 
 function calculateScore() {
   const mathRaw = parseInt(document.getElementById("math").value) || 0;
   const elaRaw = parseInt(document.getElementById("ela").value) || 0;
 
-  if(mathRaw < 0 || mathRaw > 57 || elaRaw < 0 || elaRaw > 57) {
+  if (mathRaw < 0 || mathRaw > 57 || elaRaw < 0 || elaRaw > 57) {
     document.getElementById('result').innerHTML = "Please enter valid numbers!";
     return;
   }
@@ -32,7 +46,7 @@ function calculateScore() {
   const totalCorrect = mathRaw + elaRaw;
   const percentage = ((totalCorrect / 114) * 100).toFixed(1);
 
-  // Percentile estimation
+  // Percentile estimation (rough)
   let percentile = '';
   if (scaledScore >= 650) percentile = "99th percentile+";
   else if (scaledScore >= 600) percentile = "95th–98th percentile";
@@ -41,7 +55,7 @@ function calculateScore() {
   else if (scaledScore >= 450) percentile = "50th–69th percentile";
   else percentile = "Below 50th percentile";
 
-  // School chances with color coding
+  // School chances
   const schoolResults = Object.keys(schoolCutoffs).map(school => {
     const cutoff = schoolCutoffs[school];
     let chance = 0;
@@ -67,19 +81,11 @@ function calculateScore() {
     return { school, cutoff, chance, discovery, chanceClass, discoveryClass };
   });
 
-  // Score color
-  let scoreClass = "red";
-  if (scaledScore >= 500) scoreClass = "green";
-  else if (scaledScore >= 300) scoreClass = "yellow";
-  else scoreClass = "red";
+  // Color logic
+  let scoreClass = scaledScore >= 500 ? "green" : scaledScore >= 300 ? "yellow" : "red";
+  let percentClass = percentage >= 85 ? "green" : percentage >= 70 ? "yellow" : percentage >= 41 ? "orange" : "red";
 
-  // Percentage color
-  let percentClass = "red";
-  if (percentage >= 85) percentClass = "green";
-  else if (percentage >= 70) percentClass = "yellow";
-  else if (percentage >= 41) percentClass = "orange";
-
-  // Render results
+  // Render output
   document.getElementById('result').innerHTML = `
     <p><strong>Total Correct Answers:</strong> ${totalCorrect}/114</p>
     <p><strong>Percentage:</strong> <span class="${percentClass}">${percentage}%</span></p>
